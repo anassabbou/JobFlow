@@ -53,16 +53,6 @@ class NotificationService {
           icon: '/vite.svg',
           badge: '/vite.svg',
           data,
-          actions: [
-            {
-              action: 'view',
-              title: 'View Application',
-            },
-            {
-              action: 'dismiss',
-              title: 'Dismiss',
-            },
-          ],
         });
       });
     }

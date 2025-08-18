@@ -9,7 +9,6 @@ interface NotificationPayload {
   data?: any;
   icon?: string;
   badge?: string;
-  actions?: NotificationAction[];
 }
 
 class EnhancedNotificationService {
@@ -76,16 +75,6 @@ class EnhancedNotificationService {
           icon: notification.icon || '/vite.svg',
           badge: notification.badge || '/vite.svg',
           data: notification.data,
-          actions: notification.actions || [
-            {
-              action: 'view',
-              title: 'View Application',
-            },
-            {
-              action: 'dismiss',
-              title: 'Dismiss',
-            },
-          ],
           requireInteraction: true,
           tag: 'job-tracker-notification',
         });
@@ -107,11 +96,11 @@ class EnhancedNotificationService {
     }
 
     applications.forEach((app) => {
-      this.checkApplicationDeadlines(app, settings);
+      this.checkApplicationDeadlines(app);
     });
   }
 
-  private checkApplicationDeadlines(app: JobApplication, settings: UserSettings): void {
+  private checkApplicationDeadlines(app: JobApplication): void {
     const applicationDate = new Date(app.applicationDate);
     const now = new Date();
     const daysSinceApplication = Math.floor(
@@ -180,13 +169,13 @@ class EnhancedNotificationService {
 
     // Set new interval
     const intervalId = setInterval(() => {
-      this.sendPeriodicSummary(applications, settings);
+      this.sendPeriodicSummary(applications);
     }, intervalMs);
 
     localStorage.setItem('notification_interval', intervalId.toString());
   }
 
-  private sendPeriodicSummary(applications: JobApplication[], settings: UserSettings): void {
+  private sendPeriodicSummary(applications: JobApplication[]): void {
     const pendingApplications = applications.filter(app => 
       app.status === 'applied' || app.status === 'interview'
     );

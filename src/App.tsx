@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { User, Plus, Search, Filter, LogOut, User as UserIcon, Settings, TestTube } from 'lucide-react';
-import { JobApplication, JobApplicationStatus } from './types/JobApplication';
-import { User as UserType } from './types/User';
+import { useState, useEffect } from 'react';
+import { User, Plus, Search, Filter, User as UserIcon, Settings, TestTube } from 'lucide-react';
+import type { JobApplication, JobApplicationStatus } from './types/JobApplication';
 import JobApplicationForm from './components/JobApplicationForm';
 import JobApplicationCard from './components/JobApplicationCard';
 import EditApplicationModal from './components/EditApplicationModal';
@@ -13,13 +12,11 @@ import NetworkStatus from './components/NetworkStatus';
 import NotificationTest from './components/NotificationTest';
 import { useAuth } from './hooks/useAuth';
 import { enhancedJobApplicationService } from './services/enhancedJobApplicationService';
-import { useTheme } from './contexts/ThemeContext';
 import { enhancedNotificationService } from './services/enhancedNotificationService';
 import { settingsService } from './services/settingsService';
 
 function App() {
   const { user, login, register, logout, loading: authLoading } = useAuth();
-  const { actualTheme } = useTheme();
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingApplication, setEditingApplication] = useState<JobApplication | null>(null);

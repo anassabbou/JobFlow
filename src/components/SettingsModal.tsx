@@ -11,7 +11,7 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ userId, onClose }) => {
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -39,7 +39,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ userId, onClose }) => {
   const checkNotificationPermission = async () => {
     if ('Notification' in window) {
       if (Notification.permission === 'granted') {
-        const token = await notificationService.requestPermission();
+        const token = await enhancedNotificationService.requestPermission();
         setNotificationToken(token);
       }
     }
