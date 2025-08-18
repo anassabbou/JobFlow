@@ -15,18 +15,6 @@ class AuthService {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Check for demo account
-    if (email === 'demo@example.com' && password === 'demo123') {
-      const demoUser: User = {
-        id: 'demo-user',
-        name: 'Demo User',
-        email: 'demo@example.com',
-        createdAt: new Date().toISOString(),
-      };
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(demoUser));
-      return demoUser;
-    }
-
     // Check existing users
     const users = this.getStoredUsers();
     const user = users.find(u => u.email === email);
