@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "JobFlow Autofill",
+  "version": "0.1.0",
+  "description": "Auto-fill job application forms using data from the JobFlow web app",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://anassabbou.github.io/JobFlow/*",
+    "http://localhost:5173/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

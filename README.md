@@ -62,6 +62,29 @@ graph TD
 ---
 
 
+## 🧩 Browser Extension
+
+The `extension/` directory contains a minimal Chrome extension that can
+auto-fill job application forms using data stored in the JobFlow web app.
+
+### How it works
+
+- When visiting the JobFlow app (`localhost:5173` during development or the
+  hosted demo), the extension syncs your saved applications from
+  `localStorage` into extension storage.
+- On other websites, the extension attempts to populate common job
+  application fields (position, company, location, description) with the first
+  stored application.
+
+### Installation
+
+1. Open **chrome://extensions** in Chrome.
+2. Enable **Developer mode**.
+3. Choose **Load unpacked** and select the `extension` folder from this
+   repository.
+
+---
+
 ## 📜 License
 
 This project is licensed under the MIT License – see the [LICENSE](./LICENSE) file for details.
