@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jobflow
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: jobflow
+  template:
+    metadata:
+      labels:
+        app: jobflow
+    spec:
+      containers:
+        - name: jobflow
+          image: abbou1/jobflow:1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
