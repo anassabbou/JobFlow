@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { User as UserType } from '../types/User';
 
 interface AuthFormProps {
   onLogin: (email: string, password: string) => Promise<void>;

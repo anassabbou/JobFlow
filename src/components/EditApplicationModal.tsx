@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Building, MapPin, DollarSign, User, Mail, Link, FileText } from 'lucide-react';
-import { JobApplication, JobApplicationStatus } from '../types/JobApplication';
+import { JobApplication } from '../types/JobApplication';
 
 interface EditApplicationModalProps {
   application: JobApplication;
