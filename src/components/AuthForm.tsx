@@ -40,24 +40,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onRegister }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleDemoLogin = async () => {
-    setFormData({
-      name: '',
-      email: 'demo@example.com',
-      password: 'demo123',
-    });
-    setLoading(true);
-    setError(null);
-
-    try {
-      await onLogin('demo@example.com', 'demo123');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Demo login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -148,25 +130,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onRegister }) => {
               {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Sign Up')}
             </button>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or</span>
-              </div>
-            </div>
-
-            <button
-              onClick={handleDemoLogin}
-              disabled={loading}
-              className="mt-3 w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Try Demo Account
-            </button>
-          </div>
 
           <div className="mt-6 text-center">
             <button
