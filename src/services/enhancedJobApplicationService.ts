@@ -9,9 +9,7 @@ import {
   where, 
   orderBy,
   onSnapshot,
-  Timestamp,
-  enableNetwork,
-  disableNetwork
+  Timestamp
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { JobApplication } from '../types/JobApplication';

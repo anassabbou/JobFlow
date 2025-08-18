@@ -3,6 +3,14 @@ import { messaging } from '../config/firebase';
 import { UserSettings } from '../types/Settings';
 import { JobApplication } from '../types/JobApplication';
 
+interface NotificationAction {
+  action: string;
+  title: string;
+  icon?: string;
+}
+
+type ExtendedNotificationOptions = NotificationOptions & { actions?: NotificationAction[] };
+
 class NotificationService {
   private vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 
@@ -48,7 +56,7 @@ class NotificationService {
   showLocalNotification(title: string, body: string, data?: any): void {
     if ('serviceWorker' in navigator && 'Notification' in window) {
       navigator.serviceWorker.ready.then((registration) => {
-        registration.showNotification(title, {
+        const options: ExtendedNotificationOptions = {
           body,
           icon: '/vite.svg',
           badge: '/vite.svg',
@@ -63,7 +71,8 @@ class NotificationService {
               title: 'Dismiss',
             },
           ],
-        });
+        };
+        registration.showNotification(title, options);
       });
     }
   }

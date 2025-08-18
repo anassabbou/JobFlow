@@ -3,6 +3,12 @@ import { messaging } from '../config/firebase';
 import { UserSettings } from '../types/Settings';
 import { JobApplication } from '../types/JobApplication';
 
+interface NotificationAction {
+  action: string;
+  title: string;
+  icon?: string;
+}
+
 interface NotificationPayload {
   title: string;
   body: string;
@@ -11,6 +17,8 @@ interface NotificationPayload {
   badge?: string;
   actions?: NotificationAction[];
 }
+
+type ExtendedNotificationOptions = NotificationOptions & { actions?: NotificationAction[] };
 
 class EnhancedNotificationService {
   private vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
@@ -71,7 +79,7 @@ class EnhancedNotificationService {
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then((registration) => {
-        registration.showNotification(notification.title, {
+        const options: ExtendedNotificationOptions = {
           body: notification.body,
           icon: notification.icon || '/vite.svg',
           badge: notification.badge || '/vite.svg',
@@ -88,7 +96,8 @@ class EnhancedNotificationService {
           ],
           requireInteraction: true,
           tag: 'job-tracker-notification',
-        });
+        };
+        registration.showNotification(notification.title, options);
       });
     } else {
       // Fallback for browsers without service worker
@@ -107,11 +116,11 @@ class EnhancedNotificationService {
     }
 
     applications.forEach((app) => {
-      this.checkApplicationDeadlines(app, settings);
+      this.checkApplicationDeadlines(app);
     });
   }
 
-  private checkApplicationDeadlines(app: JobApplication, settings: UserSettings): void {
+  private checkApplicationDeadlines(app: JobApplication): void {
     const applicationDate = new Date(app.applicationDate);
     const now = new Date();
     const daysSinceApplication = Math.floor(
@@ -180,13 +189,13 @@ class EnhancedNotificationService {
 
     // Set new interval
     const intervalId = setInterval(() => {
-      this.sendPeriodicSummary(applications, settings);
+      this.sendPeriodicSummary(applications);
     }, intervalMs);
 
     localStorage.setItem('notification_interval', intervalId.toString());
   }
 
-  private sendPeriodicSummary(applications: JobApplication[], settings: UserSettings): void {
+  private sendPeriodicSummary(applications: JobApplication[]): void {
     const pendingApplications = applications.filter(app => 
       app.status === 'applied' || app.status === 'interview'
     );
