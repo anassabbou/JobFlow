@@ -6,6 +6,8 @@
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
 
 ---
 
@@ -18,30 +20,47 @@ It uses **Redux** for state management, **Firebase Firestore** for persistence, 
 ---
 
 ## ✨ Features
-- 📌 **Manage job applications** – add, update, and delete applications with statuses (`applied`, `interview`, `offer`, `_rejected_`).
-- 🔄 **Redux actions & reducers** – centralized state updates for CRUD.
-- 🔐 **User authentication** – login/logout states and error handling.
-- ☁️ **Firebase integration with offline fallback** – reads/writes to Firestore, queues offline actions, and persists locally.
-- 🔔 **Notification system** – requests FCM permission, listens for messages, schedules reminders.
-- 🖥 **Core UI logic** – loads applications, sets notifications, filters/searches, and handles CRUD.
+- � **Manage job applications**
+- 🔄 **Redux actions & reducers**
+- 🔐 **User authentication**
+- ☁️ **Firebase integration with offline fallback**
+- 🔔 **Notification system**
+- � **Core UI logic**
+- 🐳 **Containerized deployment**
+- ☸️ **Kubernetes ready**
+
 
 ---
 
-## 📂 Project Structure (Diagram)
+## 🐳 Docker Support
 
-```mermaid
-graph TD
-    A[📂 src]
-    A --> B[🎬 actions: Redux action creators]
-    A --> C[🧩 components: UI components]
-    A --> D[🔄 reducers: Redux reducers]
-    A --> E[⚙️ services: Data & notifications]
-    A --> F[📝 types: Type definitions]
-    A --> G[🚪 App.tsx: Main application]
+📦 Pull from Docker Hub
 
+```bash
+docker pull abbou1/jobflow:1.0
+```
+▶️ Run the Container
+```bash
+docker run -d -p 3000:80 --name jobflow abbou1/jobflow:1.0
 ```
 
+## ☸️ Kubernetes Deployment
+
+Deploy all manifests
+
+```Shell
+kubectl apply -f k8s/
+```
+
+### 🏗️ Architecture Overview
+
+- **deployment.yaml** → React app with ![3 Replicas](https://img.shields.io/badge/Replicas-3-blue)
+- **service.yaml** → LoadBalancer service exposing ![Port 80](https://img.shields.io/badge/Port-80-green)
+
+![Workloads Overview in Lens](/public/lens-screenshot.jpg)
+
 ---
+
 
 ## 📜 Scripts
 
@@ -50,17 +69,17 @@ graph TD
 | ▶️ **`npm run dev`**     | Starts the **Vite** development server for local testing |
 | 🛠 **`npm run build`**   | Runs **TypeScript type-checking** and builds the app for production |
 | 🧹 **`npm run lint`**    | Executes **ESLint** on all `.ts` and `.tsx` files to ensure code quality |
-| 👀 **`npm run preview`** | Previews the built app locally using Vite’s preview server |
+| 👀 **`npm run preview`** | Previews the built app locally using Vite's preview server |
+| 🐳 **`docker build`**    | Build containerized version of the application |
+| ☸️ **`kubectl apply`**   | Deploy to Kubernetes cluster |
 
 ---
-
 
 ## 🚀 Live Demo  
 
 👉 [**Explore JobFlow Live**](https://anassabbou.github.io/JobFlow/)  
 
 ---
-
 
 ## 📜 License
 
