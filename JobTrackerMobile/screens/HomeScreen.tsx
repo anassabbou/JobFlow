@@ -15,32 +15,54 @@ import { JobApplication, JobApplicationStatus } from '../types/JobApplication';
 import { JobApplicationCard } from '../components/JobApplicationCard';
 import { StatsOverview } from '../components/StatsOverview';
 import { useAuth } from '../contexts/AuthContext';
-import { apiService } from '../services/apiService';
+import { firebaseJobApplicationService } from '../services/firebaseJobApplicationService';
 
-export const HomeScreen: React.FC = () => {
+interface HomeScreenProps {
+  navigation: any;
+}
+
+export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { user, logout } = useAuth();
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<JobApplicationStatus | 'all'>('all');
+  const [unsubscribe, setUnsubscribe] = useState<(() => void) | null>(null);
 
   useEffect(() => {
-    loadApplications();
-  }, []);
+    if (user) {
+      setupRealtimeListener();
+    }
+    
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [user]);
+
+  const setupRealtimeListener = () => {
+    if (!user) return;
+
+    const unsubscribeFn = firebaseJobApplicationService.subscribeToApplications(
+      user.id,
+      (apps) => {
+        setApplications(apps);
+        setLoading(false);
+      }
+    );
+    
+    setUnsubscribe(() => unsubscribeFn);
+  };
 
   const loadApplications = async () => {
     if (!user) return;
 
     setLoading(true);
     try {
-      // Use mock data for development
-      const apps = await apiService.getMockApplications();
+      const apps = await firebaseJobApplicationService.getApplications(user.id);
       setApplications(apps);
-      
-      // Uncomment when connecting to real API:
-      // const apps = await apiService.getApplications(user.id);
-      // setApplications(apps);
     } catch (error) {
       Alert.alert('Error', 'Failed to load applications');
       console.error('Error loading applications:', error);
@@ -57,12 +79,8 @@ export const HomeScreen: React.FC = () => {
 
   const handleDeleteApplication = async (id: string) => {
     try {
-      // For development, just remove from local state
-      setApplications(prev => prev.filter(app => app.id !== id));
-      
-      // Uncomment when connecting to real API:
-      // await apiService.deleteApplication(id);
-      // await loadApplications();
+      await firebaseJobApplicationService.deleteApplication(id);
+      // Real-time listener will automatically update the UI
     } catch (error) {
       Alert.alert('Error', 'Failed to delete application');
       console.error('Error deleting application:', error);
@@ -161,7 +179,10 @@ export const HomeScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       />
 
-      <TouchableOpacity style={styles.fab}>
+      <TouchableOpacity 
+        style={styles.fab}
+        onPress={() => navigation.navigate('AddApplication')}
+      >
         <Ionicons name="add" size={24} color="#FFFFFF" />
       </TouchableOpacity>
     </SafeAreaView>

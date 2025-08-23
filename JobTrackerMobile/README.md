@@ -1,14 +1,15 @@
 # Job Tracker Mobile App
 
-A React Native Expo mobile application for tracking job applications, designed to work with the Job Application Tracker web app.
+A React Native Expo mobile application for tracking job applications that shares the same Firebase database with the Job Application Tracker web app.
 
 ## Features
 
-- **Authentication**: Login and registration with secure token storage
+- **Firebase Authentication**: Secure login and registration with Firebase Auth
 - **Job Applications**: View, create, edit, and delete job applications
+- **Real-time Sync**: Automatic synchronization with the web app via Firebase
 - **Statistics**: Overview of application status distribution
 - **Search & Filter**: Find applications by company, position, or location
-- **Offline Support**: Basic offline functionality with AsyncStorage
+- **Shared Database**: Uses the same Firebase Firestore database as the web app
 - **Responsive Design**: Optimized for mobile devices
 
 ## Getting Started
@@ -38,48 +39,58 @@ A React Native Expo mobile application for tracking job applications, designed t
 
 4. Use the Expo Go app on your phone to scan the QR code, or press `i` for iOS simulator or `a` for Android emulator.
 
-## Configuration
+## Firebase Configuration
 
-### API Integration
+The mobile app is configured to use the same Firebase project as your web app:
 
-To connect to your web app's API:
+- **Project ID**: jobflow-8bf97
+- **Authentication**: Firebase Auth with AsyncStorage persistence
+- **Database**: Firestore with the same collections (`users`, `jobApplications`, `userSettings`)
+- **Real-time Updates**: Automatic synchronization between web and mobile apps
 
-1. Update the `API_BASE_URL` in `services/apiService.ts`:
-   ```typescript
-   const API_BASE_URL = 'https://your-web-app-domain.com/api';
-   ```
+## Key Features
 
-2. Uncomment the real API calls in:
-   - `contexts/AuthContext.tsx` (login/register methods)
-   - `screens/HomeScreen.tsx` (loadApplications method)
-   - `services/apiService.ts` (remove mock methods)
+### Shared Data
+- Both web and mobile apps read from and write to the same Firestore collections
+- Changes made in one app are immediately reflected in the other
+- User authentication is shared between platforms
 
-### Firebase Integration (Optional)
+### Real-time Synchronization
+- Uses Firestore real-time listeners for instant updates
+- No need for manual refresh - data updates automatically
+- Offline support through Firebase's built-in caching
 
-If your web app uses Firebase, you can integrate Firebase SDK:
+## Data Flow
 
-1. Install Firebase:
-   ```bash
-   npm install firebase
-   ```
+1. **Authentication**: Users can log in with the same credentials on both web and mobile
+2. **Job Applications**: Create, read, update, delete operations sync across platforms
+3. **Real-time Updates**: Changes are pushed to all connected clients instantly
+4. **Offline Support**: Firebase handles offline scenarios automatically
 
-2. Add your Firebase configuration to a new `config/firebase.ts` file
-3. Update the API service to use Firebase directly
+## Security
 
+The mobile app uses the same Firestore security rules as the web app:
+- Users can only access their own data
+- Row-level security ensures data privacy
+- Firebase Auth handles secure authentication
 ## Project Structure
 
 ```
 JobTrackerMobile/
+├── config/              # Firebase configuration
+│   └── firebase.ts
 ├── components/           # Reusable UI components
 │   ├── JobApplicationCard.tsx
 │   └── StatsOverview.tsx
 ├── contexts/            # React contexts
 │   └── AuthContext.tsx
 ├── screens/             # Screen components
+│   ├── AddApplicationScreen.tsx
 │   ├── HomeScreen.tsx
 │   └── LoginScreen.tsx
 ├── services/            # API and data services
-│   └── apiService.ts
+│   ├── firebaseAuthService.ts
+│   └── firebaseJobApplicationService.ts
 ├── types/               # TypeScript type definitions
 │   ├── JobApplication.ts
 │   └── User.ts
@@ -89,23 +100,25 @@ JobTrackerMobile/
 ## Key Components
 
 ### AuthContext
-Manages user authentication state and provides login/logout functionality.
+Manages user authentication state using Firebase Auth with real-time listeners.
 
+### Firebase Services
+- **firebaseAuthService**: Handles authentication with Firebase Auth
+- **firebaseJobApplicationService**: Manages job applications in Firestore with real-time updates
 ### JobApplicationCard
 Displays individual job application information with actions for edit/delete.
 
 ### StatsOverview
 Shows statistics about job applications (total, applied, interviews, etc.).
 
-### ApiService
-Handles all API communication with the web app backend.
-
 ## Development Notes
 
-- The app currently uses mock data for development
-- AsyncStorage is used for local data persistence
+- The app uses Firebase for authentication and data storage
+- Real-time listeners provide automatic updates
+- Firebase handles offline scenarios and data caching
 - The UI follows iOS/Android design guidelines
 - All components are fully typed with TypeScript
+- Data is automatically synchronized with the web app
 
 ## Building for Production
 
@@ -132,6 +145,7 @@ Handles all API communication with the web app backend.
 1. Follow the existing code style and structure
 2. Add proper TypeScript types for new features
 3. Test on both iOS and Android platforms
+4. Ensure Firebase security rules are properly configured
 4. Update this README for any new features or configuration changes
 
 ## License
