@@ -112,6 +112,10 @@ and store them in Firestore. Configure these repository secrets:
 The action writes to the `emploiPublicOffers` collection and the UI displays them
 under the **Emploi Public** section in the navbar.
 
+We also run a separate daily scraper for the full list of offers. It stores data
+in the `emploiPublicAllOffers` collection and appears in the **All Offers** section
+below the last-chance list.
+
 ## 📜 License
 
 This project is licensed under the MIT License – see the [LICENSE](./LICENSE) file for details.
