@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ExternalLink, Loader2, PlusCircle } from 'lucide-react';
-import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { EmploiPublicOffer } from '../types/EmploiPublicOffer';
 
@@ -16,16 +16,13 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
   useEffect(() => {
     const fetchOffers = async () => {
       try {
-        const offerQuery = query(
-          collection(db, 'emploiPublicOffers'),
-          orderBy('updatedAt', 'desc')
-        );
-        const snapshot = await getDocs(offerQuery);
+        const snapshot = await getDocs(collection(db, 'emploiPublicOffers'));
         const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as EmploiPublicOffer[];
-        setOffers(data);
+        const sorted = data.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+        setOffers(sorted);
       } catch (err) {
         console.error('Failed to load emploi public offers:', err);
-        setError('Failed to load offers.');
+        setError('Failed to load offers. Check Firestore permissions and data.');
       } finally {
         setLoading(false);
       }
