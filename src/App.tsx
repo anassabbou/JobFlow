@@ -27,16 +27,51 @@ function App() {
   const [showNotificationTest, setShowNotificationTest] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prefillApplication, setPrefillApplication] = useState<Partial<JobApplication> | null>(null);
 
   // Load applications when user changes
   useEffect(() => {
     if (user) {
       loadApplications();
       setupNotifications();
+      loadPrefillApplication();
     } else {
       setApplications([]);
     }
   }, [user]);
+
+  const loadPrefillApplication = () => {
+    const params = new URLSearchParams(window.location.search);
+    const hasImport = params.get('import') === '1';
+    const storedImport = sessionStorage.getItem('jobflow_import');
+
+    if (hasImport) {
+      const imported = {
+        company: params.get('company') || '',
+        position: params.get('position') || '',
+        location: params.get('location') || '',
+        jobUrl: params.get('jobUrl') || '',
+        notes: params.get('notes') || '',
+        applicationDate: params.get('applicationDate') || new Date().toISOString().split('T')[0],
+      };
+      setPrefillApplication(imported);
+      setShowForm(true);
+      sessionStorage.setItem('jobflow_import', JSON.stringify(imported));
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+
+    if (storedImport) {
+      try {
+        const parsed = JSON.parse(storedImport) as Partial<JobApplication>;
+        setPrefillApplication(parsed);
+        setShowForm(true);
+        sessionStorage.removeItem('jobflow_import');
+      } catch (error) {
+        console.error('Failed to parse stored import:', error);
+      }
+    }
+  };
 
   const setupNotifications = async () => {
     if (user) {
@@ -88,6 +123,7 @@ function App() {
       const newApplication = await enhancedJobApplicationService.createApplication(user.id, applicationData);
       setApplications(prev => [newApplication, ...prev]);
       setShowForm(false);
+      setPrefillApplication(null);
     } catch (err) {
       setError('Failed to add application');
       console.error('Error adding application:', err);
@@ -302,8 +338,12 @@ function App() {
       {/* Modals */}
       {showForm && (
         <JobApplicationForm
+          initialData={prefillApplication || undefined}
           onSubmit={handleAddApplication}
-          onCancel={() => setShowForm(false)}
+          onCancel={() => {
+            setShowForm(false);
+            setPrefillApplication(null);
+          }}
         />
       )}
 

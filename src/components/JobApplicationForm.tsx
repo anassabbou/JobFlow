@@ -1,27 +1,42 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Building, MapPin, DollarSign, User, Mail, Link, FileText, Calendar } from 'lucide-react';
 import { JobApplication, JobApplicationStatus } from '../types/JobApplication';
 
 interface JobApplicationFormProps {
   onSubmit: (application: Omit<JobApplication, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => void;
   onCancel: () => void;
+  initialData?: Partial<JobApplication>;
 }
 
-const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, onCancel }) => {
+const defaultFormData = {
+  company: '',
+  position: '',
+  location: '',
+  status: 'applied' as JobApplicationStatus,
+  applicationDate: new Date().toISOString().split('T')[0],
+  offerDate: '',
+  concoursDate: '',
+  notes: '',
+  salary: '',
+  jobUrl: '',
+  contactPerson: '',
+  contactEmail: '',
+};
+
+const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, onCancel, initialData }) => {
   const [formData, setFormData] = useState({
-    company: '',
-    position: '',
-    location: '',
-    status: 'applied' as JobApplicationStatus,
-    applicationDate: new Date().toISOString().split('T')[0],
-    offerDate: '',
-    concoursDate: '',
-    notes: '',
-    salary: '',
-    jobUrl: '',
-    contactPerson: '',
-    contactEmail: '',
+    ...defaultFormData,
+    ...initialData,
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        ...defaultFormData,
+        ...initialData,
+      });
+    }
+  }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
