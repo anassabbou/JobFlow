@@ -41,6 +41,15 @@ def parse_french_deadline(value: str):
     return datetime(year, month + 1, day)
 
 
+def get_cutoff_datetime():
+    cutoff_env = os.environ.get("SCRAPE_CUTOFF_DATE")
+    if cutoff_env:
+        parsed = parse_french_deadline(cutoff_env)
+        if parsed:
+            return parsed
+    return datetime.now()
+
+
 def scrape_all_pages():
     base_url = "https://www.emploi-public.ma"
     search_url = "https://www.emploi-public.ma/fr/concours-liste"
@@ -54,6 +63,7 @@ def scrape_all_pages():
 
     all_jobs = []
     page_number = 1
+    cutoff_datetime = get_cutoff_datetime()
 
     while True:
         params = {"page": page_number}
@@ -101,7 +111,7 @@ def scrape_all_pages():
                         job_data["posts_count"] = suitcase_icon.parent.text.strip()
 
                 if job_data.get("id"):
-                    if deadline_date and deadline_date < datetime.now():
+                    if deadline_date and deadline_date < cutoff_datetime:
                         continue
                     all_jobs.append(job_data)
 
