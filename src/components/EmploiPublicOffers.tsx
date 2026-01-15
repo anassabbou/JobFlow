@@ -11,9 +11,79 @@ interface EmploiPublicOffersProps {
 const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => {
   const [offers, setOffers] = useState<EmploiPublicOffer[]>([]);
   const [allOffers, setAllOffers] = useState<EmploiPublicOffer[]>([]);
+  const [expirationFilter, setExpirationFilter] = useState<'all' | 'active' | 'expired'>('all');
+  const [gradeFilter, setGradeFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [allOffersError, setAllOffersError] = useState<string | null>(null);
+
+  const gradeOptions = [
+    'Administrateur deuxième grade',
+    'ADJOINT TECHNIQUE 2EME GRADE',
+    'Administrateur troisième grade',
+    'Architecte premier grade',
+    "Ingénieur D'Etat premier grade",
+    'Maitre de conférences grade A',
+    'Technicien de 3ème Grade',
+    'Technicien de 4ème Grade',
+  ];
+
+  const parseFrenchDate = (value: string) => {
+    const normalized = value
+      .toLowerCase()
+      .replace('er', '')
+      .replace('1er', '1')
+      .trim();
+    const months: Record<string, number> = {
+      janvier: 0,
+      fevrier: 1,
+      février: 1,
+      mars: 2,
+      avril: 3,
+      mai: 4,
+      juin: 5,
+      juillet: 6,
+      aout: 7,
+      août: 7,
+      septembre: 8,
+      octobre: 9,
+      novembre: 10,
+      decembre: 11,
+      décembre: 11,
+    };
+
+    const parts = normalized.split(/\s+/);
+    if (parts.length < 3) return null;
+    const day = Number(parts[0]);
+    const month = months[parts[1]];
+    const year = Number(parts[2]);
+    if (!day || month === undefined || !year) return null;
+    return new Date(year, month, day);
+  };
+
+  const isExpired = (deadline?: string) => {
+    if (!deadline) return false;
+    const date = parseFrenchDate(deadline);
+    if (!date) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+  };
+
+  const filteredAllOffers = allOffers
+    .filter((offer) => {
+      if (expirationFilter === 'active') {
+        return !isExpired(offer.deadline);
+      }
+      if (expirationFilter === 'expired') {
+        return isExpired(offer.deadline);
+      }
+      return true;
+    })
+    .filter((offer) => {
+      if (gradeFilter === 'all') return true;
+      return offer.title?.toLowerCase().includes(gradeFilter.toLowerCase());
+    });
 
   useEffect(() => {
     const fetchOffers = async () => {
@@ -140,38 +210,81 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
         )}
 
         {!allOffersError && allOffers.length > 0 && (
-          <div className="mt-4 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {allOffers.map((offer) => (
-              <div key={offer.id} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{offer.title}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">{offer.organization}</p>
-                {offer.deadline && (
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Deadline: {offer.deadline}</p>
-                )}
-                {offer.posts_count && (
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{offer.posts_count}</p>
-                )}
-                <div className="mt-4 flex items-center justify-between">
-                  <button
-                    onClick={() => onImport(offer)}
-                    className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-                  >
-                    <PlusCircle className="h-4 w-4" />
-                    Add to JobFlow
-                  </button>
-                  <a
-                    href={offer.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    View
-                  </a>
-                </div>
+          <>
+            <div className="mt-4 flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 md:flex-row md:items-center">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                  Statut d&apos;expiration
+                </label>
+                <select
+                  value={expirationFilter}
+                  onChange={(e) => setExpirationFilter(e.target.value as 'all' | 'active' | 'expired')}
+                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="all">Tous</option>
+                  <option value="active">Active</option>
+                  <option value="expired">EXPIRÉE</option>
+                </select>
               </div>
-            ))}
-          </div>
+
+              <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                  Grade
+                </label>
+                <select
+                  value={gradeFilter}
+                  onChange={(e) => setGradeFilter(e.target.value)}
+                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="all">Tous les grades</option>
+                  {gradeOptions.map((grade) => (
+                    <option key={grade} value={grade}>
+                      {grade}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {filteredAllOffers.length === 0 ? (
+              <div className="mt-4 rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                No offers match these filters.
+              </div>
+            ) : (
+              <div className="mt-4 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredAllOffers.map((offer) => (
+                  <div key={offer.id} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{offer.title}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{offer.organization}</p>
+                    {offer.deadline && (
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Deadline: {offer.deadline}</p>
+                    )}
+                    {offer.posts_count && (
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{offer.posts_count}</p>
+                    )}
+                    <div className="mt-4 flex items-center justify-between">
+                      <button
+                        onClick={() => onImport(offer)}
+                        className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                      >
+                        <PlusCircle className="h-4 w-4" />
+                        Add to JobFlow
+                      </button>
+                      <a
+                        href={offer.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        View
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
