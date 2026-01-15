@@ -178,6 +178,9 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
               {offer.deadline && (
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Deadline: {offer.deadline}</p>
               )}
+              <p className="mt-1 text-xs font-semibold text-gray-700 dark:text-gray-200">
+                {isExpired(offer.deadline) ? 'EXPIRÉE' : 'Active'}
+              </p>
               {offer.posts_count && (
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{offer.posts_count}</p>
               )}
@@ -272,6 +275,9 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
                     {offer.deadline && (
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Deadline: {offer.deadline}</p>
                     )}
+                    <p className="mt-1 text-xs font-semibold text-gray-700 dark:text-gray-200">
+                      {isExpired(offer.deadline) ? 'EXPIRÉE' : 'Active'}
+                    </p>
                     {offer.posts_count && (
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{offer.posts_count}</p>
                     )}
