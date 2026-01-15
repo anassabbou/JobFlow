@@ -16,6 +16,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ userId, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notificationToken, setNotificationToken] = useState<string | null>(null);
+  const [notificationStatus, setNotificationStatus] = useState<NotificationPermission | 'unsupported'>('default');
 
   useEffect(() => {
     loadSettings();
@@ -37,11 +38,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ userId, onClose }) => {
   };
 
   const checkNotificationPermission = async () => {
-    if ('Notification' in window) {
-      if (Notification.permission === 'granted') {
-        const token = await enhancedNotificationService.requestPermission();
-        setNotificationToken(token);
-      }
+    if (!('Notification' in window)) {
+      setNotificationStatus('unsupported');
+      return;
+    }
+
+    setNotificationStatus(Notification.permission);
+
+    if (Notification.permission === 'granted') {
+      const token = await enhancedNotificationService.requestPermission();
+      setNotificationToken(token);
     }
   };
 
@@ -76,6 +82,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ userId, onClose }) => {
     if (enabled && Notification.permission !== 'granted') {
       const token = await enhancedNotificationService.requestPermission();
       setNotificationToken(token);
+      if ('Notification' in window) {
+        setNotificationStatus(Notification.permission);
+      }
       if (!token) {
         // Permission denied
         return;
@@ -185,6 +194,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ userId, onClose }) => {
                   />
                 </button>
               </div>
+
+              {notificationStatus === 'denied' && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+                  Notifications are blocked in your browser settings. Enable them for this site to receive reminders.
+                </div>
+              )}
+
+              {notificationStatus === 'unsupported' && (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-xs text-gray-600">
+                  Notifications aren&apos;t supported in this browser.
+                </div>
+              )}
 
               {settings.notifications.enabled && (
                 <>

@@ -17,6 +17,16 @@ class EnhancedNotificationService {
   private readonly concoursReminderWindowDays = 7;
 
   async requestPermission(): Promise<string | null> {
+    if (!('Notification' in window)) {
+      console.warn('This browser does not support notifications');
+      return null;
+    }
+
+    if (Notification.permission === 'denied') {
+      console.warn('Notification permission is denied in browser settings');
+      return null;
+    }
+
     if (!messaging) {
       console.warn('Firebase Messaging is not supported in this browser');
       return null;

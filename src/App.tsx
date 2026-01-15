@@ -40,8 +40,9 @@ function App() {
 
   const setupNotifications = async () => {
     if (user) {
+      const browserPermission = 'Notification' in window ? Notification.permission : 'unsupported';
       // Request notification permission and setup listeners
-      const token = await enhancedNotificationService.requestPermission();
+      const token = browserPermission === 'denied' ? null : await enhancedNotificationService.requestPermission();
       if (token) {
         await enhancedNotificationService.saveNotificationToken(user.id, token);
       }

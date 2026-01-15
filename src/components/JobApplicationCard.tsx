@@ -166,9 +166,12 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({ application, on
               className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
             >
               <Send className="h-3.5 w-3.5" />
-              Send Gmail reminder
+              Open Gmail draft
             </a>
           </div>
+          <p className="mt-2 text-xs text-blue-700">
+            This opens a Gmail draft. You&apos;ll need to review and send the email manually.
+          </p>
         </div>
       )}
 
