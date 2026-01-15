@@ -39,12 +39,9 @@ class SettingsService {
         frequency: 'daily',
         reminderDays: 3,
       },
-      emailNotifications: {
+      discordNotifications: {
         enabled: false,
-        senderEmail: '',
-        receiverEmail: '',
-        apiUrl: '',
-        authToken: '',
+        webhookUrl: '',
       },
       preferences: {
         defaultView: 'grid',

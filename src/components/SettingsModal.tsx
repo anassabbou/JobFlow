@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Bell, Palette, Eye, Save, Loader, TestTube, Mail } from 'lucide-react';
+import { X, Bell, Palette, Eye, Save, Loader, TestTube, MessageSquare } from 'lucide-react';
 import { UserSettings } from '../types/Settings';
 import { useTheme } from '../contexts/ThemeContext';
 import { settingsService } from '../services/settingsService';
 import { enhancedNotificationService } from '../services/enhancedNotificationService';
-import { emailNotificationService } from '../services/emailNotificationService';
+import { discordNotificationService } from '../services/discordNotificationService';
 
 interface SettingsModalProps {
   userId: string;
@@ -30,15 +30,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ userId, onClose }) => {
       if (!userSettings) {
         userSettings = await settingsService.createDefaultSettings(userId);
       }
-      if (!userSettings.emailNotifications) {
+      if (!userSettings.discordNotifications) {
         userSettings = {
           ...userSettings,
-          emailNotifications: {
+          discordNotifications: {
             enabled: false,
-            senderEmail: '',
-            receiverEmail: '',
-            apiUrl: '',
-            authToken: '',
+            webhookUrl: '',
           },
         };
       }
@@ -72,7 +69,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ userId, onClose }) => {
       await settingsService.updateUserSettings(userId, {
         theme: settings.theme,
         notifications: settings.notifications,
-        emailNotifications: settings.emailNotifications,
+        discordNotifications: settings.discordNotifications,
         preferences: settings.preferences,
       });
       
@@ -119,26 +116,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ userId, onClose }) => {
     }
   };
 
-  const handleTestEmail = async () => {
+  const handleTestDiscord = async () => {
     if (!settings) return;
 
-    const result = await emailNotificationService.sendTestEmail(settings.emailNotifications);
+    const result = await discordNotificationService.sendTestMessage(settings.discordNotifications);
 
     switch (result.status) {
       case 'disabled':
-        window.alert('Email notifications are disabled. Enable them to send a test.');
+        window.alert('Discord notifications are disabled. Enable them to send a test.');
         break;
-      case 'missing-receiver':
-        window.alert('Please enter a receiver email address.');
-        break;
-      case 'mailto':
-        window.alert('No email API configured. Opened a mail draft instead.');
+      case 'missing-webhook':
+        window.alert('Please enter a Discord webhook URL.');
         break;
       case 'sent':
-        window.alert('Test email sent successfully.');
+        window.alert('Test Discord notification sent successfully.');
         break;
       case 'failed':
-        window.alert(`Failed to send test email: ${result.error}`);
+        window.alert(`Failed to send Discord notification: ${result.error}`);
         break;
       default:
         break;
@@ -340,119 +334,69 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ userId, onClose }) => {
             </div>
           </div>
 
-          {/* Email Notifications */}
+          {/* Discord Notifications */}
           <div>
             <div className="flex items-center mb-4">
-              <Mail className="w-5 h-5 text-gray-600 dark:text-gray-400 mr-2" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Email Notifications</h3>
+              <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-400 mr-2" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Discord Notifications</h3>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Enable Email Reminders
+                    Enable Discord Reminders
                   </label>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Send reminder emails automatically (requires an email API).
+                    Send reminder alerts to your Discord server.
                   </p>
                 </div>
                 <button
                   onClick={() => setSettings(prev => prev ? {
                     ...prev,
-                    emailNotifications: {
-                      ...prev.emailNotifications,
-                      enabled: !prev.emailNotifications.enabled,
+                    discordNotifications: {
+                      ...prev.discordNotifications,
+                      enabled: !prev.discordNotifications.enabled,
                     },
                   } : null)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    settings.emailNotifications.enabled ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
+                    settings.discordNotifications.enabled ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
                   }`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      settings.emailNotifications.enabled ? 'translate-x-6' : 'translate-x-1'
+                      settings.discordNotifications.enabled ? 'translate-x-6' : 'translate-x-1'
                     }`}
                   />
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Sender Email
-                  </label>
-                  <input
-                    type="email"
-                    value={settings.emailNotifications.senderEmail}
-                    onChange={(e) => setSettings(prev => prev ? {
-                      ...prev,
-                      emailNotifications: { ...prev.emailNotifications, senderEmail: e.target.value },
-                    } : null)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="sender@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Receiver Email
-                  </label>
-                  <input
-                    type="email"
-                    value={settings.emailNotifications.receiverEmail}
-                    onChange={(e) => setSettings(prev => prev ? {
-                      ...prev,
-                      emailNotifications: { ...prev.emailNotifications, receiverEmail: e.target.value },
-                    } : null)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="a.anassabbou@gmail.com"
-                  />
-                </div>
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email API URL
+                  Discord Webhook URL
                 </label>
                 <input
                   type="url"
-                  value={settings.emailNotifications.apiUrl}
+                  value={settings.discordNotifications.webhookUrl}
                   onChange={(e) => setSettings(prev => prev ? {
                     ...prev,
-                    emailNotifications: { ...prev.emailNotifications, apiUrl: e.target.value },
+                    discordNotifications: { ...prev.discordNotifications, webhookUrl: e.target.value },
                   } : null)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="https://your-email-api.example.com/send"
+                  placeholder="https://discord.com/api/webhooks/..."
                 />
                 <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Provide an email API endpoint to send reminders automatically (defaults to /api/reminders).
+                  Store your webhook in a local .env file (VITE_DISCORD_WEBHOOK_URL) for extra safety.
                 </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Authorization Token
-                </label>
-                <input
-                  type="password"
-                  value={settings.emailNotifications.authToken}
-                  onChange={(e) => setSettings(prev => prev ? {
-                    ...prev,
-                    emailNotifications: { ...prev.emailNotifications, authToken: e.target.value },
-                  } : null)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="Bearer token"
-                />
               </div>
 
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
-                  onClick={handleTestEmail}
+                  onClick={handleTestDiscord}
                   className="flex items-center px-4 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                 >
                   <TestTube className="w-4 h-4 mr-2" />
-                  Send Test Email
+                  Send Test Discord Message
                 </button>
               </div>
             </div>

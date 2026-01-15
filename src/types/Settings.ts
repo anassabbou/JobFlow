@@ -9,12 +9,9 @@ export interface UserSettings {
     frequency: 'immediate' | 'daily' | 'weekly';
     reminderDays: number; // Days before deadline to remind
   };
-  emailNotifications: {
+  discordNotifications: {
     enabled: boolean;
-    senderEmail: string;
-    receiverEmail: string;
-    apiUrl: string;
-    authToken: string;
+    webhookUrl: string;
   };
   preferences: {
     defaultView: 'grid' | 'list';

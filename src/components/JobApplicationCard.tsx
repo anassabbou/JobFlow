@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building, MapPin, Calendar, Edit, Trash2, ExternalLink, User, Mail, DollarSign, Send } from 'lucide-react';
+import { Building, MapPin, Calendar, Edit, Trash2, ExternalLink, User, Mail, DollarSign } from 'lucide-react';
 import { JobApplication } from '../types/JobApplication';
 
 interface JobApplicationCardProps {
@@ -31,18 +31,6 @@ const getDaysBetween = (start: string, end: string): number => {
   return Math.ceil((endDate.getTime() - startDate.getTime()) / DAY_IN_MS);
 };
 
-const buildGmailComposeUrl = (to: string | undefined, subject: string, body: string): string => {
-  const params = new URLSearchParams({
-    view: 'cm',
-    fs: '1',
-    to: to || '',
-    su: subject,
-    body,
-  });
-
-  return `https://mail.google.com/mail/?${params.toString()}`;
-};
-
 const JobApplicationCard: React.FC<JobApplicationCardProps> = ({ application, onEdit, onDelete }) => {
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this application?')) {
@@ -57,16 +45,6 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({ application, on
   const isConcoursReminderDue = typeof concoursDaysLeft === 'number'
     && concoursDaysLeft >= 0
     && concoursDaysLeft <= CONCOURS_REMINDER_WINDOW_DAYS;
-
-  const gmailReminderUrl = buildGmailComposeUrl(
-    application.contactEmail,
-    `Concours reminder for ${application.position} at ${application.company}`,
-    `Hello${application.contactPerson ? ` ${application.contactPerson}` : ''},\n\n` +
-      `This is a reminder that the concours date is approaching for the ${application.position} role at ${application.company}. ` +
-      `Offer date: ${application.offerDate ? new Date(application.offerDate).toLocaleDateString() : 'N/A'}. ` +
-      `Concours date: ${application.concoursDate ? new Date(application.concoursDate).toLocaleDateString() : 'N/A'}.\n\n` +
-      'Thank you.'
-  );
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
@@ -155,23 +133,9 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({ application, on
 
       {isConcoursReminderDue && (
         <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <span>
-              Concours is coming up {typeof concoursDaysLeft === 'number' ? `in ${concoursDaysLeft} day${concoursDaysLeft === 1 ? '' : 's'}` : ''}.
-            </span>
-            <a
-              href={gmailReminderUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
-            >
-              <Send className="h-3.5 w-3.5" />
-              Open Gmail draft
-            </a>
-          </div>
-          <p className="mt-2 text-xs text-blue-700">
-            This opens a Gmail draft. You&apos;ll need to review and send the email manually.
-          </p>
+          <span>
+            Concours is coming up {typeof concoursDaysLeft === 'number' ? `in ${concoursDaysLeft} day${concoursDaysLeft === 1 ? '' : 's'}` : ''}.
+          </span>
         </div>
       )}
 
