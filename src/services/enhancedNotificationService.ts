@@ -16,6 +16,22 @@ class EnhancedNotificationService {
   private notificationQueue: NotificationPayload[] = [];
   private readonly concoursReminderWindowDays = 7;
 
+  private async getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | null> {
+    if (!('serviceWorker' in navigator)) {
+      return null;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.register(
+        `${import.meta.env.BASE_URL}firebase-messaging-sw.js`
+      );
+      return registration;
+    } catch (error) {
+      console.error('Failed to register Firebase messaging service worker:', error);
+      return null;
+    }
+  }
+
   async requestPermission(): Promise<string | null> {
     if (!('Notification' in window)) {
       console.warn('This browser does not support notifications');
@@ -35,8 +51,10 @@ class EnhancedNotificationService {
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
+        const serviceWorkerRegistration = await this.getServiceWorkerRegistration();
         const token = await getToken(messaging, {
           vapidKey: this.vapidKey,
+          serviceWorkerRegistration: serviceWorkerRegistration ?? undefined,
         });
         console.log('FCM Token:', token);
         return token;
