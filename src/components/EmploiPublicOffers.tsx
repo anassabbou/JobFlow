@@ -103,7 +103,14 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
       try {
         const snapshot = await getDocs(collection(db, 'emploiPublicOffers'));
         const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as EmploiPublicOffer[];
-        const sorted = data.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+        const sorted = data.sort((a, b) => {
+          const dateA = parseFrenchDate(a.deadline || '');
+          const dateB = parseFrenchDate(b.deadline || '');
+          if (!dateA && !dateB) return 0;
+          if (!dateA) return 1;
+          if (!dateB) return -1;
+          return dateA.getTime() - dateB.getTime();
+        });
         setOffers(sorted);
       } catch (err) {
         console.error('Failed to load emploi public offers:', err);
@@ -117,7 +124,14 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
       try {
         const snapshot = await getDocs(collection(db, 'emploiPublicAllOffers'));
         const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as EmploiPublicOffer[];
-        const sorted = data.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+        const sorted = data.sort((a, b) => {
+          const dateA = parseFrenchDate(a.deadline || '');
+          const dateB = parseFrenchDate(b.deadline || '');
+          if (!dateA && !dateB) return 0;
+          if (!dateA) return 1;
+          if (!dateB) return -1;
+          return dateA.getTime() - dateB.getTime();
+        });
         setAllOffers(sorted);
       } catch (err) {
         console.error('Failed to load emploi public all offers:', err);
