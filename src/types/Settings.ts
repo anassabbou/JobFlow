@@ -9,6 +9,13 @@ export interface UserSettings {
     frequency: 'immediate' | 'daily' | 'weekly';
     reminderDays: number; // Days before deadline to remind
   };
+  emailNotifications: {
+    enabled: boolean;
+    senderEmail: string;
+    receiverEmail: string;
+    apiUrl: string;
+    authToken: string;
+  };
   preferences: {
     defaultView: 'grid' | 'list';
     sortBy: 'date' | 'company' | 'status';

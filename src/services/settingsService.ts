@@ -39,6 +39,13 @@ class SettingsService {
         frequency: 'daily',
         reminderDays: 3,
       },
+      emailNotifications: {
+        enabled: false,
+        senderEmail: '',
+        receiverEmail: '',
+        apiUrl: '',
+        authToken: '',
+      },
       preferences: {
         defaultView: 'grid',
         sortBy: 'date',
