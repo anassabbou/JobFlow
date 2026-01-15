@@ -13,6 +13,7 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
   const [allOffers, setAllOffers] = useState<EmploiPublicOffer[]>([]);
   const [expirationFilter, setExpirationFilter] = useState<'all' | 'active' | 'expired'>('all');
   const [gradeFilter, setGradeFilter] = useState('all');
+  const [yearFilter, setYearFilter] = useState('all');
   const [allOffersPage, setAllOffersPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +29,7 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
     'Technicien de 3ème Grade',
     'Technicien de 4ème Grade',
   ];
+  const yearOptions = ['2024', '2025', '2026'];
 
   const parseFrenchDate = (value: string) => {
     const normalized = value
@@ -84,6 +86,12 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
       if (gradeFilter === 'all') return true;
       const normalizedGrade = gradeFilter.toLowerCase();
       return offer.title?.toLowerCase().includes(normalizedGrade);
+    })
+    .filter((offer) => {
+      if (yearFilter === 'all') return true;
+      const date = parseFrenchDate(offer.deadline || '');
+      if (!date) return false;
+      return date.getFullYear().toString() === yearFilter;
     });
 
   const allOffersPerPage = 12;
@@ -96,7 +104,7 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
 
   useEffect(() => {
     setAllOffersPage(1);
-  }, [expirationFilter, gradeFilter]);
+  }, [expirationFilter, gradeFilter, yearFilter]);
 
   useEffect(() => {
     const fetchOffers = async () => {
@@ -270,6 +278,24 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
                   {gradeOptions.map((grade) => (
                     <option key={grade} value={grade}>
                       {grade}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                  Année
+                </label>
+                <select
+                  value={yearFilter}
+                  onChange={(e) => setYearFilter(e.target.value)}
+                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="all">Toutes les années</option>
+                  {yearOptions.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
                     </option>
                   ))}
                 </select>
