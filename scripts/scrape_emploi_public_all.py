@@ -9,45 +9,39 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 
-def parse_french_deadline(value: str):
-    normalized = value.lower().split("-")[0].strip()
-    normalized = normalized.replace("1er", "1").replace("er", "").strip()
-    months = {
-        "janvier": 0,
-        "fevrier": 1,
-        "février": 1,
-        "mars": 2,
-        "avril": 3,
-        "mai": 4,
-        "juin": 5,
-        "juillet": 6,
-        "aout": 7,
-        "août": 7,
-        "septembre": 8,
-        "octobre": 9,
-        "novembre": 10,
-        "decembre": 11,
-        "décembre": 11,
+def parse_french_date(date_str):
+    """Parse French date format like '18 Janvier 2026' into datetime object."""
+    date_part = date_str.split("\n")[0].strip()
+
+    month_map = {
+        "janvier": 1,
+        "février": 2,
+        "mars": 3,
+        "avril": 4,
+        "mai": 5,
+        "juin": 6,
+        "juillet": 7,
+        "août": 8,
+        "septembre": 9,
+        "octobre": 10,
+        "novembre": 11,
+        "décembre": 12,
     }
 
-    parts = normalized.split()
-    if len(parts) < 3:
-        return None
-    day = int(parts[0])
-    month = months.get(parts[1])
-    year = int(parts[2])
-    if month is None:
-        return None
-    return datetime(year, month + 1, day)
+    try:
+        parts = date_part.split()
+        if len(parts) >= 3:
+            day = int(parts[0])
+            month_name = parts[1].lower()
+            year = int(parts[2])
 
+            month = month_map.get(month_name)
+            if month:
+                return datetime(year, month, day)
+    except (ValueError, IndexError, KeyError):
+        pass
 
-def get_cutoff_datetime():
-    cutoff_env = os.environ.get("SCRAPE_CUTOFF_DATE")
-    if cutoff_env:
-        parsed = parse_french_deadline(cutoff_env)
-        if parsed:
-            return parsed
-    return datetime.now()
+    return None
 
 
 def scrape_all_pages():
@@ -63,69 +57,92 @@ def scrape_all_pages():
 
     all_jobs = []
     page_number = 1
-    cutoff_datetime = get_cutoff_datetime()
+    current_date = datetime(2026, 1, 15)
 
     while True:
+        print(f"Scraping page {page_number}...")
         params = {"page": page_number}
 
-        try:
-            response = requests.get(search_url, headers=headers, params=params, timeout=10)
+        max_retries = 3
+        retry_count = 0
+        success = False
 
-            if response.status_code != 200:
-                print(f"Stopped: Status code {response.status_code} at page {page_number}")
+        while retry_count < max_retries and not success:
+            try:
+                response = requests.get(search_url, headers=headers, params=params, timeout=30)
+
+                if response.status_code != 200:
+                    print(f"Stopped: Status code {response.status_code} at page {page_number}")
+                    return all_jobs
+
+                success = True
+            except requests.exceptions.Timeout:
+                retry_count += 1
+                if retry_count < max_retries:
+                    print(f"Timeout on page {page_number}, retrying ({retry_count}/{max_retries})...")
+                    time.sleep(5 * retry_count)
+                else:
+                    print(f"Failed to scrape page {page_number} after {max_retries} retries. Skipping.")
+                    page_number += 1
+                    continue
+            except Exception as e:
+                print(f"Error on page {page_number}: {e}")
                 break
 
-            soup = BeautifulSoup(response.content, "html.parser")
-
-            items = soup.find_all("div", class_="s-item")
-            if not items:
-                print(f"No more items found on page {page_number}. Stopping.")
-                break
-
-            for item in items:
-                job_data = {}
-
-                link_tag = item.find("a", class_="card")
-                if link_tag:
-                    relative_link = link_tag.get("href")
-                    job_data["url"] = base_url + relative_link
-                    job_data["id"] = relative_link.split("/")[-1] if relative_link else None
-
-                title_tag = item.find("h2", class_="card-title")
-                job_data["title"] = title_tag.text.strip() if title_tag else "No Title"
-
-                org_tag = item.find("div", class_="card-text")
-                job_data["organization"] = org_tag.text.strip() if org_tag else "Unknown"
-
-                footer = item.find("div", class_="card-footer")
-                deadline_date = None
-                if footer:
-                    time_icon = footer.find("i", class_="icon-time-out")
-                    if time_icon and time_icon.parent:
-                        raw_date = time_icon.parent.text.replace("Limite de dépôt :", "").strip()
-                        job_data["deadline"] = raw_date
-                        deadline_date = parse_french_deadline(raw_date)
-
-                    suitcase_icon = footer.find("i", class_="icon-suitcase")
-                    if suitcase_icon and suitcase_icon.parent:
-                        job_data["posts_count"] = suitcase_icon.parent.text.strip()
-
-                if job_data.get("id"):
-                    if deadline_date and deadline_date < cutoff_datetime:
-                        continue
-                    all_jobs.append(job_data)
-
-            next_button = soup.find("a", class_="page-link next")
-            if not next_button:
-                print("No 'Next' button found. Reached last page.")
-                break
-
-            page_number += 1
-            time.sleep(1)
-
-        except Exception as error:
-            print(f"Error on page {page_number}: {error}")
+        if not success:
             break
+
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        items = soup.find_all("div", class_="s-item")
+        if not items:
+            print(f"No more items found on page {page_number}. Stopping.")
+            break
+
+        for item in items:
+            job_data = {}
+
+            link_tag = item.find("a", class_="card")
+            if link_tag:
+                relative_link = link_tag.get("href")
+                job_data["url"] = base_url + relative_link
+                job_data["id"] = relative_link.split("/")[-1] if relative_link else "N/A"
+
+            title_tag = item.find("h2", class_="card-title")
+            job_data["title"] = title_tag.text.strip() if title_tag else "No Title"
+
+            org_tag = item.find("div", class_="card-text")
+            job_data["organization"] = org_tag.text.strip() if org_tag else "Unknown"
+
+            footer = item.find("div", class_="card-footer")
+            deadline_date = None
+            if footer:
+                time_icon = footer.find("i", class_="icon-time-out")
+                if time_icon and time_icon.parent:
+                    raw_date = time_icon.parent.text.replace("Limite de dépôt :", "").strip()
+                    job_data["deadline"] = raw_date
+                    deadline_date = parse_french_date(raw_date)
+
+                suitcase_icon = footer.find("i", class_="icon-suitcase")
+                if suitcase_icon and suitcase_icon.parent:
+                    job_data["posts_count"] = suitcase_icon.parent.text.strip()
+
+            if deadline_date and deadline_date > current_date:
+                all_jobs.append(job_data)
+                print(f"Added job: {job_data['title'][:50]}... (Deadline: {job_data['deadline']})")
+            else:
+                print(
+                    f"Skipped job: {job_data['title'][:50]}... "
+                    f"(Deadline: {job_data.get('deadline', 'N/A')} - expired or invalid)"
+                )
+
+        next_button = soup.find("a", class_="page-link next")
+        if not next_button:
+            print("No 'Next' button found. Reached last page.")
+            break
+
+        page_number += 1
+        time.sleep(2)
 
     return all_jobs
 
@@ -155,6 +172,10 @@ def upsert_offers(db, offers):
 if __name__ == "__main__":
     jobs = scrape_all_pages()
     print(f"Total jobs scraped: {len(jobs)}")
+
+    with open("jobs_data.json", "w", encoding="utf-8") as f:
+        json.dump(jobs, f, indent=4, ensure_ascii=False)
+
     if not jobs:
         raise SystemExit(1)
 
