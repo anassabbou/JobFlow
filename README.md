@@ -70,6 +70,7 @@ kubectl apply -f k8s/
 | 🛠 **`npm run build`**   | Runs **TypeScript type-checking** and builds the app for production |
 | 🧹 **`npm run lint`**    | Executes **ESLint** on all `.ts` and `.tsx` files to ensure code quality |
 | 👀 **`npm run preview`** | Previews the built app locally using Vite's preview server |
+| 📧 **`npm run reminders:server`** | Starts the reminders email API server |
 | 🐳 **`docker build`**    | Build containerized version of the application |
 | ☸️ **`kubectl apply`**   | Deploy to Kubernetes cluster |
 
@@ -80,6 +81,34 @@ kubectl apply -f k8s/
 👉 [**Explore JobFlow Live**](https://anassabbou.github.io/JobFlow/)  
 
 ---
+
+## 📧 Reminders Email API
+
+To send automatic email reminders, run the reminders API and configure it in **Settings → Email Notifications**.
+
+```bash
+npm run reminders:server
+```
+
+Environment variables:
+
+- `SMTP_HOST` (required)
+- `SMTP_PORT` (required)
+- `SMTP_USER` (required)
+- `SMTP_PASS` (required)
+- `SMTP_SECURE` (optional, set to `true` for TLS)
+- `REMINDERS_PORT` (optional, defaults to `8787`)
+
+The API listens on `/api/reminders` and expects JSON:
+
+```json
+{
+  "to": "recipient@example.com",
+  "from": "sender@example.com",
+  "subject": "Reminder",
+  "text": "Your reminder text"
+}
+```
 
 ## 📜 License
 

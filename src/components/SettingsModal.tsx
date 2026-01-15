@@ -426,7 +426,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ userId, onClose }) => {
                   placeholder="https://your-email-api.example.com/send"
                 />
                 <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Provide an email API endpoint to send reminders automatically.
+                  Provide an email API endpoint to send reminders automatically (defaults to /api/reminders).
                 </p>
               </div>
 

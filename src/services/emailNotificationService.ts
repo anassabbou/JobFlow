@@ -9,7 +9,7 @@ type EmailNotificationResult =
 
 class EmailNotificationService {
   private getApiUrl(settings: UserSettings['emailNotifications']): string {
-    return settings.apiUrl || import.meta.env.VITE_EMAIL_API_URL || '';
+    return settings.apiUrl || import.meta.env.VITE_EMAIL_API_URL || '/api/reminders';
   }
 
   async sendTestEmail(settings: UserSettings['emailNotifications']): Promise<EmailNotificationResult> {
