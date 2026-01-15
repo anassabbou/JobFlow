@@ -26,5 +26,16 @@ service cloud.firestore {
       allow create: if request.auth != null && 
         request.auth.uid == request.resource.data.userId;
     }
+
+    // Public offers from emploi-public.ma (read-only for clients)
+    match /emploiPublicOffers/{offerId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /emploiPublicAllOffers/{offerId} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }

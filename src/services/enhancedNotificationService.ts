@@ -272,7 +272,7 @@ class EnhancedNotificationService {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to save notification token');
+        console.warn('Failed to save notification token via API');
       }
     } catch (error) {
       console.error('Error saving notification token:', error);

@@ -9,6 +9,38 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 
+def parse_french_deadline(value: str):
+    normalized = value.lower().split("-")[0].strip()
+    normalized = normalized.replace("1er", "1").replace("er", "").strip()
+    months = {
+        "janvier": 0,
+        "fevrier": 1,
+        "février": 1,
+        "mars": 2,
+        "avril": 3,
+        "mai": 4,
+        "juin": 5,
+        "juillet": 6,
+        "aout": 7,
+        "août": 7,
+        "septembre": 8,
+        "octobre": 9,
+        "novembre": 10,
+        "decembre": 11,
+        "décembre": 11,
+    }
+
+    parts = normalized.split()
+    if len(parts) < 3:
+        return None
+    day = int(parts[0])
+    month = months.get(parts[1])
+    year = int(parts[2])
+    if month is None:
+        return None
+    return datetime(year, month + 1, day)
+
+
 def scrape_all_pages():
     base_url = "https://www.emploi-public.ma"
     search_url = "https://www.emploi-public.ma/fr/concours-liste"
@@ -56,17 +88,21 @@ def scrape_all_pages():
                 job_data["organization"] = org_tag.text.strip() if org_tag else "Unknown"
 
                 footer = item.find("div", class_="card-footer")
+                deadline_date = None
                 if footer:
                     time_icon = footer.find("i", class_="icon-time-out")
                     if time_icon and time_icon.parent:
                         raw_date = time_icon.parent.text.replace("Limite de dépôt :", "").strip()
                         job_data["deadline"] = raw_date
+                        deadline_date = parse_french_deadline(raw_date)
 
                     suitcase_icon = footer.find("i", class_="icon-suitcase")
                     if suitcase_icon and suitcase_icon.parent:
                         job_data["posts_count"] = suitcase_icon.parent.text.strip()
 
                 if job_data.get("id"):
+                    if deadline_date and deadline_date < datetime.now():
+                        continue
                     all_jobs.append(job_data)
 
             next_button = soup.find("a", class_="page-link next")
