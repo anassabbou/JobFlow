@@ -1,25 +1,42 @@
-import React, { useState } from 'react';
-import { X, Building, MapPin, DollarSign, User, Mail, Link, FileText } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Building, MapPin, DollarSign, User, Mail, Link, FileText, Calendar } from 'lucide-react';
 import { JobApplication, JobApplicationStatus } from '../types/JobApplication';
 
 interface JobApplicationFormProps {
   onSubmit: (application: Omit<JobApplication, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => void;
   onCancel: () => void;
+  initialData?: Partial<JobApplication>;
 }
 
-const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, onCancel }) => {
+const defaultFormData = {
+  company: '',
+  position: '',
+  location: '',
+  status: 'applied' as JobApplicationStatus,
+  applicationDate: new Date().toISOString().split('T')[0],
+  offerDate: '',
+  concoursDate: '',
+  notes: '',
+  salary: '',
+  jobUrl: '',
+  contactPerson: '',
+  contactEmail: '',
+};
+
+const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, onCancel, initialData }) => {
   const [formData, setFormData] = useState({
-    company: '',
-    position: '',
-    location: '',
-    status: 'applied' as JobApplicationStatus,
-    applicationDate: new Date().toISOString().split('T')[0],
-    notes: '',
-    salary: '',
-    jobUrl: '',
-    contactPerson: '',
-    contactEmail: '',
+    ...defaultFormData,
+    ...initialData,
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        ...defaultFormData,
+        ...initialData,
+      });
+    }
+  }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,12 +134,43 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, onCan
             {/* Application Date */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="w-4 h-4 inline mr-2" />
                 Application Date
               </label>
               <input
                 type="date"
                 name="applicationDate"
                 value={formData.applicationDate}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Offer Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="w-4 h-4 inline mr-2" />
+                Offer Date
+              </label>
+              <input
+                type="date"
+                name="offerDate"
+                value={formData.offerDate}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Concours Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="w-4 h-4 inline mr-2" />
+                Concours Date
+              </label>
+              <input
+                type="date"
+                name="concoursDate"
+                value={formData.concoursDate}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
@@ -191,6 +239,9 @@ const JobApplicationForm: React.FC<JobApplicationFormProps> = ({ onSubmit, onCan
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter job posting URL"
             />
+            <p className="mt-2 text-xs text-gray-500">
+              Tip: A browser extension can help gather offer details—paste them here for quick tracking.
+            </p>
           </div>
 
           {/* Notes */}

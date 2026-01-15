@@ -81,6 +81,37 @@ kubectl apply -f k8s/
 
 ---
 
+## 💬 Discord Reminders
+
+Configure **Settings → Discord Notifications** and store your webhook in a local `.env`:
+
+```bash
+VITE_DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
+```
+
+## 🧩 Job Offer Import Extension
+
+Use the browser extension in the `extension/` folder to capture offers from
+`https://www.emploi-public.ma/fr/concours-liste` and prefill the JobFlow form.
+
+Steps (Chrome):
+
+1. Open **chrome://extensions**.
+2. Enable **Developer mode**.
+3. Click **Load unpacked** and select the `extension/` folder.
+4. Visit the concours list page, open the extension, and click **Capture from page**.
+5. Click **Open in JobFlow** to prefill the form.
+
+## 🕒 Emploi Public Scraper (Daily)
+
+We run a GitHub Action daily to scrape the "Dernière chance pour postuler" offers
+and store them in Firestore. Configure these repository secrets:
+
+- `FIREBASE_SERVICE_ACCOUNT`: Firebase service account JSON string.
+
+The action writes to the `emploiPublicOffers` collection and the UI displays them
+under the **Emploi Public** section in the navbar.
+
 ## 📜 License
 
 This project is licensed under the MIT License – see the [LICENSE](./LICENSE) file for details.

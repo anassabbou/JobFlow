@@ -22,12 +22,29 @@ const statusLabels = {
   rejected: 'Rejected',
 };
 
+const DAY_IN_MS = 1000 * 60 * 60 * 24;
+const CONCOURS_REMINDER_WINDOW_DAYS = 7;
+
+const getDaysBetween = (start: string, end: string): number => {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  return Math.ceil((endDate.getTime() - startDate.getTime()) / DAY_IN_MS);
+};
+
 const JobApplicationCard: React.FC<JobApplicationCardProps> = ({ application, onEdit, onDelete }) => {
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this application?')) {
       onDelete(application.id);
     }
   };
+
+  const concoursDaysLeft = application.offerDate && application.concoursDate
+    ? getDaysBetween(application.offerDate, application.concoursDate)
+    : null;
+
+  const isConcoursReminderDue = typeof concoursDaysLeft === 'number'
+    && concoursDaysLeft >= 0
+    && concoursDaysLeft <= CONCOURS_REMINDER_WINDOW_DAYS;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
@@ -98,7 +115,29 @@ const JobApplicationCard: React.FC<JobApplicationCardProps> = ({ application, on
             <span>{application.contactEmail}</span>
           </div>
         )}
+
+        {application.offerDate && (
+          <div className="flex items-center text-gray-600 dark:text-gray-300 text-sm">
+            <Calendar className="w-4 h-4 mr-2" />
+            <span>Offer date: {new Date(application.offerDate).toLocaleDateString()}</span>
+          </div>
+        )}
+
+        {application.concoursDate && (
+          <div className="flex items-center text-gray-600 dark:text-gray-300 text-sm">
+            <Calendar className="w-4 h-4 mr-2" />
+            <span>Concours date: {new Date(application.concoursDate).toLocaleDateString()}</span>
+          </div>
+        )}
       </div>
+
+      {isConcoursReminderDue && (
+        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          <span>
+            Concours is coming up {typeof concoursDaysLeft === 'number' ? `in ${concoursDaysLeft} day${concoursDaysLeft === 1 ? '' : 's'}` : ''}.
+          </span>
+        </div>
+      )}
 
       {/* Notes */}
       {application.notes && (

@@ -9,6 +9,10 @@ export interface UserSettings {
     frequency: 'immediate' | 'daily' | 'weekly';
     reminderDays: number; // Days before deadline to remind
   };
+  discordNotifications: {
+    enabled: boolean;
+    webhookUrl: string;
+  };
   preferences: {
     defaultView: 'grid' | 'list';
     sortBy: 'date' | 'company' | 'status';

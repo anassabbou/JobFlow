@@ -39,6 +39,10 @@ class SettingsService {
         frequency: 'daily',
         reminderDays: 3,
       },
+      discordNotifications: {
+        enabled: false,
+        webhookUrl: '',
+      },
       preferences: {
         defaultView: 'grid',
         sortBy: 'date',

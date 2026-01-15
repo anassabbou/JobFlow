@@ -14,8 +14,35 @@ interface NotificationPayload {
 class EnhancedNotificationService {
   private vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
   private notificationQueue: NotificationPayload[] = [];
+  private readonly concoursReminderWindowDays = 7;
+
+  private async getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | null> {
+    if (!('serviceWorker' in navigator)) {
+      return null;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.register(
+        `${import.meta.env.BASE_URL}firebase-messaging-sw.js`
+      );
+      return registration;
+    } catch (error) {
+      console.error('Failed to register Firebase messaging service worker:', error);
+      return null;
+    }
+  }
 
   async requestPermission(): Promise<string | null> {
+    if (!('Notification' in window)) {
+      console.warn('This browser does not support notifications');
+      return null;
+    }
+
+    if (Notification.permission === 'denied') {
+      console.warn('Notification permission is denied in browser settings');
+      return null;
+    }
+
     if (!messaging) {
       console.warn('Firebase Messaging is not supported in this browser');
       return null;
@@ -24,8 +51,10 @@ class EnhancedNotificationService {
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
+        const serviceWorkerRegistration = await this.getServiceWorkerRegistration();
         const token = await getToken(messaging, {
           vapidKey: this.vapidKey,
+          serviceWorkerRegistration: serviceWorkerRegistration ?? undefined,
         });
         console.log('FCM Token:', token);
         return token;
@@ -107,6 +136,8 @@ class EnhancedNotificationService {
       (now.getTime() - applicationDate.getTime()) / (1000 * 60 * 60 * 24)
     );
 
+    this.checkConcoursReminder(app);
+
     // Different reminder logic based on status
     switch (app.status) {
       case 'applied':
@@ -138,6 +169,24 @@ class EnhancedNotificationService {
           });
         }
         break;
+    }
+  }
+
+  private checkConcoursReminder(app: JobApplication): void {
+    if (!app.offerDate || !app.concoursDate) return;
+
+    const offerDate = new Date(app.offerDate);
+    const concoursDate = new Date(app.concoursDate);
+    const daysBetween = Math.ceil(
+      (concoursDate.getTime() - offerDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysBetween >= 0 && daysBetween <= this.concoursReminderWindowDays) {
+      this.showLocalNotification({
+        title: 'Concours Date Reminder',
+        body: `Your offer at ${app.company} is ${daysBetween} day${daysBetween === 1 ? '' : 's'} away from the concours date.`,
+        data: { applicationId: app.id, type: 'concours-reminder' },
+      });
     }
   }
 
