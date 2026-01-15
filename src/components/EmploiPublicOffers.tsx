@@ -13,6 +13,7 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
   const [allOffers, setAllOffers] = useState<EmploiPublicOffer[]>([]);
   const [expirationFilter, setExpirationFilter] = useState<'all' | 'active' | 'expired'>('all');
   const [gradeFilter, setGradeFilter] = useState('all');
+  const [allOffersPage, setAllOffersPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [allOffersError, setAllOffersError] = useState<string | null>(null);
@@ -65,9 +66,8 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
     if (!deadline) return false;
     const date = parseFrenchDate(deadline);
     if (!date) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date < today;
+    const now = new Date();
+    return date < now;
   };
 
   const filteredAllOffers = allOffers
@@ -82,8 +82,21 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
     })
     .filter((offer) => {
       if (gradeFilter === 'all') return true;
-      return offer.title?.toLowerCase().includes(gradeFilter.toLowerCase());
+      const normalizedGrade = gradeFilter.toLowerCase();
+      return offer.title?.toLowerCase().includes(normalizedGrade);
     });
+
+  const allOffersPerPage = 12;
+  const totalAllOffersPages = Math.max(1, Math.ceil(filteredAllOffers.length / allOffersPerPage));
+  const currentAllOffersPage = Math.min(allOffersPage, totalAllOffersPages);
+  const paginatedAllOffers = filteredAllOffers.slice(
+    (currentAllOffersPage - 1) * allOffersPerPage,
+    currentAllOffersPage * allOffersPerPage
+  );
+
+  useEffect(() => {
+    setAllOffersPage(1);
+  }, [expirationFilter, gradeFilter]);
 
   useEffect(() => {
     const fetchOffers = async () => {
@@ -252,7 +265,7 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
               </div>
             ) : (
               <div className="mt-4 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredAllOffers.map((offer) => (
+                {paginatedAllOffers.map((offer) => (
                   <div key={offer.id} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{offer.title}</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300">{offer.organization}</p>
@@ -282,6 +295,28 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {filteredAllOffers.length > 0 && (
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+                <button
+                  onClick={() => setAllOffersPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentAllOffersPage === 1}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+                >
+                  Previous
+                </button>
+                <span>
+                  Page {currentAllOffersPage} of {totalAllOffersPages}
+                </span>
+                <button
+                  onClick={() => setAllOffersPage((prev) => Math.min(totalAllOffersPages, prev + 1))}
+                  disabled={currentAllOffersPage === totalAllOffersPages}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+                >
+                  Next
+                </button>
               </div>
             )}
           </>
