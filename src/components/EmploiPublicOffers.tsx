@@ -20,26 +20,6 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
   const [error, setError] = useState<string | null>(null);
   const [allOffersError, setAllOffersError] = useState<string | null>(null);
 
-  const gradeOptions = [
-    'Administrateur deuxième grade',
-    'ADJOINT TECHNIQUE 2EME GRADE',
-    'Administrateur troisième grade',
-    'Architecte premier grade',
-    "Ingénieur D'Etat premier grade",
-    'Maitre de conférences grade A',
-    'Technicien de 3ème Grade',
-    'Technicien de 4ème Grade',
-  ];
-  const yearOptions = ['2024', '2025', '2026'];
-  const monthYearOptions = Array.from(
-    new Set(
-      allOffers
-        .map((offer) => parseFrenchDate(offer.deadline || ''))
-        .filter((date): date is Date => Boolean(date))
-        .map((date) => date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }))
-    )
-  ).sort((a, b) => a.localeCompare(b, 'fr-FR'));
-
   const parseFrenchDate = (value: string) => {
     const normalized = value
       .toLowerCase()
@@ -73,6 +53,26 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
     if (!day || month === undefined || !year) return null;
     return new Date(year, month, day);
   };
+
+  const gradeOptions = [
+    'Administrateur deuxième grade',
+    'ADJOINT TECHNIQUE 2EME GRADE',
+    'Administrateur troisième grade',
+    'Architecte premier grade',
+    "Ingénieur D'Etat premier grade",
+    'Maitre de conférences grade A',
+    'Technicien de 3ème Grade',
+    'Technicien de 4ème Grade',
+  ];
+  const yearOptions = ['2024', '2025', '2026'];
+  const monthYearOptions = Array.from(
+    new Set(
+      allOffers
+        .map((offer) => parseFrenchDate(offer.deadline || ''))
+        .filter((date): date is Date => Boolean(date))
+        .map((date) => date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }))
+    )
+  ).sort((a, b) => a.localeCompare(b, 'fr-FR'));
 
   const isExpired = (deadline?: string) => {
     if (!deadline) return false;
