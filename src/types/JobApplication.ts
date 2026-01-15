@@ -8,6 +8,8 @@ export interface JobApplication {
   location: string;
   status: JobApplicationStatus;
   applicationDate: string;
+  offerDate?: string;
+  concoursDate?: string;
   notes?: string;
   salary?: string;
   jobUrl?: string;

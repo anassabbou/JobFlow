@@ -14,6 +14,7 @@ interface NotificationPayload {
 class EnhancedNotificationService {
   private vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
   private notificationQueue: NotificationPayload[] = [];
+  private readonly concoursReminderWindowDays = 7;
 
   async requestPermission(): Promise<string | null> {
     if (!messaging) {
@@ -107,6 +108,8 @@ class EnhancedNotificationService {
       (now.getTime() - applicationDate.getTime()) / (1000 * 60 * 60 * 24)
     );
 
+    this.checkConcoursReminder(app);
+
     // Different reminder logic based on status
     switch (app.status) {
       case 'applied':
@@ -138,6 +141,24 @@ class EnhancedNotificationService {
           });
         }
         break;
+    }
+  }
+
+  private checkConcoursReminder(app: JobApplication): void {
+    if (!app.offerDate || !app.concoursDate) return;
+
+    const offerDate = new Date(app.offerDate);
+    const concoursDate = new Date(app.concoursDate);
+    const daysBetween = Math.ceil(
+      (concoursDate.getTime() - offerDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysBetween >= 0 && daysBetween <= this.concoursReminderWindowDays) {
+      this.showLocalNotification({
+        title: 'Concours Date Reminder',
+        body: `Your offer at ${app.company} is ${daysBetween} day${daysBetween === 1 ? '' : 's'} away from the concours date.`,
+        data: { applicationId: app.id, type: 'concours-reminder' },
+      });
     }
   }
 
