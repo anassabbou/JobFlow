@@ -14,6 +14,7 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
   const [expirationFilter, setExpirationFilter] = useState<'all' | 'active' | 'expired'>('all');
   const [gradeFilter, setGradeFilter] = useState('all');
   const [yearFilter, setYearFilter] = useState('all');
+  const [monthYearFilter, setMonthYearFilter] = useState('all');
   const [allOffersPage, setAllOffersPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,10 +31,19 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
     'Technicien de 4ème Grade',
   ];
   const yearOptions = ['2024', '2025', '2026'];
+  const monthYearOptions = Array.from(
+    new Set(
+      allOffers
+        .map((offer) => parseFrenchDate(offer.deadline || ''))
+        .filter((date): date is Date => Boolean(date))
+        .map((date) => date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }))
+    )
+  ).sort((a, b) => a.localeCompare(b, 'fr-FR'));
 
   const parseFrenchDate = (value: string) => {
     const normalized = value
       .toLowerCase()
+      .split('-')[0]
       .replace('er', '')
       .replace('1er', '1')
       .trim();
@@ -92,6 +102,13 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
       const date = parseFrenchDate(offer.deadline || '');
       if (!date) return false;
       return date.getFullYear().toString() === yearFilter;
+    })
+    .filter((offer) => {
+      if (monthYearFilter === 'all') return true;
+      const date = parseFrenchDate(offer.deadline || '');
+      if (!date) return false;
+      const label = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+      return label.toLowerCase() === monthYearFilter.toLowerCase();
     });
 
   const allOffersPerPage = 12;
@@ -104,7 +121,7 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
 
   useEffect(() => {
     setAllOffersPage(1);
-  }, [expirationFilter, gradeFilter, yearFilter]);
+  }, [expirationFilter, gradeFilter, yearFilter, monthYearFilter]);
 
   useEffect(() => {
     const fetchOffers = async () => {
@@ -296,6 +313,24 @@ const EmploiPublicOffers: React.FC<EmploiPublicOffersProps> = ({ onImport }) => 
                   {yearOptions.map((year) => (
                     <option key={year} value={year}>
                       {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                  Mois
+                </label>
+                <select
+                  value={monthYearFilter}
+                  onChange={(e) => setMonthYearFilter(e.target.value)}
+                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="all">Tous les mois</option>
+                  {monthYearOptions.map((monthYear) => (
+                    <option key={monthYear} value={monthYear}>
+                      {monthYear}
                     </option>
                   ))}
                 </select>
